@@ -50,8 +50,10 @@ void MenuManager::exitMenu() {
       currentIndex = 0; // reset currentIndex to 0 -> go to the first mainMenu
     }else { // go te the default menu 
       currentIndex = 0; // set mainMenu NR
-      menuStackPointer = 1; // set subMenu NR
-      menuStack[menuStackPointer] = currentMenu; // apply it
+      int x = 1; // set subMenu NR
+      for (int i = 0; i < x; i++){
+        menuStack[menuStackPointer++] = currentMenu; // apply it
+      }
       currentMenu = currentMenu->getSubMenu(currentIndex); // apply it
     } 
     showCurrentMenu();
