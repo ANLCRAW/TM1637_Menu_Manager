@@ -67,11 +67,11 @@ void MenuManager::previousItem() {
     showCurrentMenu();
 }
 
-void MenuManager::showCurrentMenu() {
+void MenuManager::showCurrentMenu(bool dmxDot) {
     if (currentMenu->getSubMenuCount() > 0) {
-        showText(currentMenu->getSubMenu(currentIndex)->getName().c_str(), currentMenu->getSubMenu(currentIndex)->getDot());
+        showText(currentMenu->getSubMenu(currentIndex)->getName().c_str(), currentMenu->getSubMenu(currentIndex)->getDot()+dmxDot);
     } else {
-        showText(currentMenu->getName().c_str(), currentMenu->getSubMenu(currentIndex)->getDot());
+        showText(currentMenu->getName().c_str(), currentMenu->getSubMenu(currentIndex)->getDot()+dmxDot);
     }
 }
 

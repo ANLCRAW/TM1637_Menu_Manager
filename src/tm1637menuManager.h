@@ -25,7 +25,7 @@ public:
     void exitMenu();
     void nextItem();
     void previousItem();
-    void showCurrentMenu();
+    void showCurrentMenu(bool dmxDot = false);
     void showText(const char* text, int dot = 0); //  no visable dot 
 };
 
