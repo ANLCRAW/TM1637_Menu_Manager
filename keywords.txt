@@ -1,0 +1,60 @@
+#######################################
+# Syntax Coloring Map For MenuManager
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+MenuManager     KEYWORD1
+MenuObject      KEYWORD1
+TM1637          KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+getCurrentMenu  KEYWORD2
+enterMenu       KEYWORD2
+exitMenu        KEYWORD2
+nextItem        KEYWORD2
+previousItem    KEYWORD2
+showCurrentMenu KEYWORD2
+showText        KEYWORD2
+
+
+#######################################
+# Syntax Coloring Map For MenuObject
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+MenuObject      KEYWORD1
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+MAX_SUBMENUS    LITERAL1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+addSubMenu      KEYWORD2
+getName         KEYWORD2
+getDot          KEYWORD2
+getSubMenu      KEYWORD2
+getSubMenuCount KEYWORD2
+
+#######################################
+# Variables (KEYWORD2)
+#######################################
+
+name            KEYWORD2
+dot             KEYWORD2
+subMenus        KEYWORD2
+subMenuCount    KEYWORD2
+
