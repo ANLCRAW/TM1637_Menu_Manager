@@ -7,6 +7,12 @@ MenuManager::MenuManager(TM1637* display, MenuObject* rootMenu) {
     this->currentIndex = 0;
 }
 
+// Destructor for MenuManager
+MenuManager::~MenuManager() {
+    // Delete the dynamically allocated root menu and all its submenus
+    delete currentMenu;
+}
+
 MenuObject* MenuManager::getCurrentMenu() {
     return currentMenu;
 }

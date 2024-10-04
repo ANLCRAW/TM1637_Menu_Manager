@@ -19,6 +19,8 @@ private:
 public:
     MenuManager(TM1637* display, MenuObject* rootMenu);
 
+    ~MenuManager();
+
     MenuObject* getCurrentMenu();
 
     void enterMenu();
