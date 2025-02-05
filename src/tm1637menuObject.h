@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define MAX_SUBMENUS 14 // Maximaal aantal sub-menu's per menu
+#define MAX_SUBMENUS 13 // Maximaal aantal sub-menu's per menu
 
 class MenuObject {
 public:
