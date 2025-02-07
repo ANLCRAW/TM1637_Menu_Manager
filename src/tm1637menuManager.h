@@ -49,13 +49,13 @@ public:
     void previousItem();
     void showCurrentMenu(bool dmxDot = false);
     void showCurrentScriptMenu(bool dmxDot = false);
+    void darkScreen(bool dmxDot = false);
     void showText(const char* text, int dot = 0); //  no visable dot 
     bool getCurrentMenuIsMain();
     bool getTargetMenuIsMain(MenuObject* targetMenu);
     bool getCurrentMenuIsSub();
     bool getCurrentMenuIsSubSub();
     void jumpToMenu(MenuObject* targetMenu);
-    
 };
 
 #endif

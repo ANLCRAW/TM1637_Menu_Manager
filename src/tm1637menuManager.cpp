@@ -238,6 +238,10 @@ void MenuManager::showCurrentMenu(bool dmxDot) {
   }
 }
 
+void MenuManager::darkScreen(bool dmxDot){
+    showText("    ", dmxDot);
+}
+
 void MenuManager::showCurrentScriptMenu(bool dmxDot){
     showText(currentMenu->getName().c_str(), currentMenu->getDot()+dmxDot);
 }
