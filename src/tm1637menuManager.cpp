@@ -80,7 +80,7 @@ void MenuManager::jumpToMenu(MenuObject* targetMenu) {
       }
 
       // **Update menu navigation variables**
-      menuStackPointer = newStackPointer;
+      menuStackPointer = newStackPointer - 1;
       currentMenu = targetMenu;  // This should update correctly
       currentIndex = mainMenuIndex;  // Ensure correct submenu index
       
