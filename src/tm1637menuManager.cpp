@@ -5,6 +5,7 @@ MenuManager::MenuManager(TM1637* display, MenuObject* rootMenu) {
     this->currentMenu = rootMenu;
     this->menuStackPointer = 0;
     this->currentIndex = 0;
+
 }
 
 // Destructor for MenuManager
@@ -96,7 +97,8 @@ void MenuManager::jumpToMenu(MenuObject* targetMenu) {
 }
 
 int MenuManager::getCurrentIndex(){
-    return currentIndex;
+    return currentMenuObject[menuStackPointer];
+    //return currentIndex;
 }
 
 bool MenuManager::findMenuPath(MenuObject* root, MenuObject* target, int depth, int &newStackPointer, int &mainMenuIndex) {
@@ -166,6 +168,7 @@ void MenuManager::exitMenu() {
       
     }else if (currentIndex > 0 ){ // still in the last stored mainmenu
       currentIndex = 0; // reset currentIndex to 0 -> go to the first mainMenu
+      currentMenuObject[menuStackPointer] = currentIndex;
     }//else { // go te the default menu 
     
     

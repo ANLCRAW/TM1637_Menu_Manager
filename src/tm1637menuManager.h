@@ -29,9 +29,9 @@
 #define DEX_println(...)
 #endif
 
-#include "TM1637.h"  // We use the "TM16xxLEDs and Buttons" library
-#include "TM16xxDisplay.h"
-#include "TM16xxButtons.h"
+#include <TM1637.h>  // We gebruiken de "TM16xxLEDs and Buttons" bibliotheek 
+#include <TM16xxDisplay.h>
+#include <TM16xxButtons.h> 
 #include "tm1637menuObject.h"
 
 class MenuManager {
