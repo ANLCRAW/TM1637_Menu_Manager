@@ -33,12 +33,14 @@ bool MenuManager::getTargetMenuIsMain(MenuObject* targetMenu) {
     for (int i = 0; i < root->getSubMenuCount(); i++) {
         // **If target menu found**
         if (root == targetMenu) {
-            D_println("Already in a main menu, you can ONLY jump to subMenu's , aborting jump.");
+            D_println("Already in a main menu, you can ONLY jump to subMenu's , ABORTING JUMP!");
             return true;
         } else{
             return false;
         }
     }
+    // If loop finishes without finding the target menu, return false
+    return false;
 }
 
 bool MenuManager::getCurrentMenuIsSub() {
@@ -75,7 +77,7 @@ void MenuManager::jumpToMenu(MenuObject* targetMenu) {
 
       // **Ensure stack pointer is within bounds**
       if (newStackPointer >= MAX_SUBMENUS) {
-          D_println("ERROR: Stack overflow detected, aborting!");
+          D_println("ERROR: Stack overflow detected, ABORTING!");
           return;
       }
 
@@ -85,29 +87,31 @@ void MenuManager::jumpToMenu(MenuObject* targetMenu) {
       currentIndex = mainMenuIndex;  // Ensure correct submenu index
       
 
-      D_println("Jump successful:");
-      D_print("  New Stack Pointer: "); D_println(menuStackPointer);
-      D_print("  Main Menu Index: "); D_println(mainMenuIndex);
-      D_print("  Current Menu: "); D_println(currentMenu ? currentMenu->getName() : "NULL");
+      D_println("Jump successful!");
+      D_printf("  New Stack Pointer: %u\n", menuStackPointer);
+      D_printf("  Main Menu Index: %u\n", mainMenuIndex);
+      D_printf("  Current Menu: %u\n", currentMenu ? currentMenu->getName() : "NULL");
 
       showCurrentMenu();
 }
 
-
+int MenuManager::getCurrentIndex(){
+    return currentIndex;
+}
 
 bool MenuManager::findMenuPath(MenuObject* root, MenuObject* target, int depth, int &newStackPointer, int &mainMenuIndex) {
     if (!root || depth >= MAX_SUBMENUS) return false;
 
     for (int i = 0; i < root->getSubMenuCount(); i++) {
         MenuObject* subMenu = root->getSubMenu(i);
-        DEX_print("Checking submenu: "); DEX_println(subMenu->getName());
+        DEX_printf("Checking submenu: %u\n", subMenu->getName());
 
         // **If target menu found, update stack**
         if (subMenu == target) {
             D_println("Target menu found!");
             newStackPointer = depth + 1;
             mainMenuIndex = i;
-            DEX_print("mainMenuIndex: "); DEX_println(mainMenuIndex);
+            DEX_printf("mainMenuIndex: %u\n", mainMenuIndex);
             menuStack[depth] = root;  // Store parent in stack
 
             // **STOP SEARCH if target is a main menu**
@@ -119,7 +123,7 @@ bool MenuManager::findMenuPath(MenuObject* root, MenuObject* target, int depth, 
 
             return true;
         } else{
-          currentMainMenuObject = i;
+          currentMenuObject[0] = i;
         }
 
         // **Recursively search deeper**
@@ -134,96 +138,63 @@ bool MenuManager::findMenuPath(MenuObject* root, MenuObject* target, int depth, 
 
 
 void MenuManager::enterMenu() {
-    if (menuStackPointer == 0){ // in mainMenu
-      currentMainMenuObject = currentIndex; //go back to the mainMenu that last was selected
-    }
-    if (currentMenu->getSubMenuCount() > 0) {
-      menuStack[menuStackPointer++] = currentMenu;
-      currentMenu = currentMenu->getSubMenu(currentIndex);
-      currentSubMenuObject = currentIndex; // holds currentindex temperaly
-      currentIndex = 0;
+    
+    if (currentMenu->getSubMenuCount() > 0) { // has submenu's
+      menuStack[menuStackPointer++] = currentMenu; // add one sub layer
+      
+      currentMenu = currentMenu->getSubMenu(currentIndex); // set current menu
+      currentIndex = currentMenuObject[menuStackPointer]; // get the previous stored index
 
       // check it again | overflow protection
       if(currentMenu->getSubMenuCount() == 0){ // prevent extra menuStackPointer that not exists
         currentMenu = menuStack[--menuStackPointer]; // noting there -> go back
-        currentIndex = currentSubMenuObject;
+        currentIndex = currentMenuObject[menuStackPointer]; // get the previous stored index
       }
       
     }
     
-    DEX_print("currentMainMenuObject: "); DEX_println(currentMainMenuObject);
-    DEX_print("submenucount: "); DEX_println(currentMenu->getSubMenuCount());
-    DEX_print("menuStackPointer: "); DEX_println(menuStackPointer);
-    DEX_print("currentIndex: "); DEX_println(currentIndex);
-    DEX_print("currenMenu NAME: ");//DEX_println(currentMenu ? currentMenu->getName() : "NULL");
-    if (currentMenu->getSubMenuCount() > 0 && currentIndex < currentMenu->getSubMenuCount()) {
-        DEX_println(currentMenu ? currentMenu->getName() : "NULL");
-    } else {
-        DEX_println("No valid submenu!");
-    }
-    
+    printDebug();
     showCurrentMenu();    
 }
 
 void MenuManager::exitMenu() {
-    if (menuStackPointer == 0){ // in mainMenu
-      currentMainMenuObject = currentIndex; //go back to the mainMenu that last was selected
-    }
+    currentMenuObject[menuStackPointer] = currentIndex; //save index before leaving
+
     if (menuStackPointer > 0) { // still in a subMenu
       currentMenu = menuStack[--menuStackPointer];
-      if (menuStackPointer == 0){ // in the mainMenu
-        currentIndex = currentMainMenuObject; // get the recently use menuNR
-        currentMainMenuObject = 0; // reset currentMainMenuObject to 0
-      }
+      currentIndex = currentMenuObject[menuStackPointer]; // get the recently use menuNR
+      
     }else if (currentIndex > 0 ){ // still in the last stored mainmenu
       currentIndex = 0; // reset currentIndex to 0 -> go to the first mainMenu
     }//else { // go te the default menu 
-     // currentIndex = 0; // set mainMenu NR
-     // int x = 1; // set subMenu NR
-     // for (int i = 0; i < x; i++){
-     //   menuStack[menuStackPointer++] = currentMenu; // apply it
-     // }
-     // currentMenu = currentMenu->getSubMenu(currentIndex); // apply it
-    //} 
     
     
-    DEX_print("currentMainMenuObject: "); DEX_println(currentMainMenuObject);
-    DEX_print("submenucount: "); DEX_println(currentMenu->getSubMenuCount());
-    DEX_print("menuStackPointer: "); DEX_println(menuStackPointer);
-    DEX_print("currentIndex: "); DEX_println(currentIndex);
-    DEX_print("currenMenu NAME: ");DEX_println(currentMenu ? currentMenu->getName() : "NULL");
-    
+    printDebug();
     showCurrentMenu();
 }
 
 void MenuManager::nextItem() {
-    currentIndex = (currentIndex + 1) % currentMenu->getSubMenuCount();
-    if (menuStackPointer == 0){ // in mainMenu
-      currentMainMenuObject = currentIndex; //go back to the mainMenu that last was selected
-    }
+    currentIndex = (currentIndex + 1) % currentMenu->getSubMenuCount(); // add +1 to index
+    currentMenuObject[menuStackPointer] = currentIndex; // save the new index
     
-    DEX_print("currentMainMenuObject: "); DEX_println(currentMainMenuObject);
-    DEX_print("submenucount: "); DEX_println(currentMenu->getSubMenuCount());
-    DEX_print("menuStackPointer: "); DEX_println(menuStackPointer);
-    DEX_print("currentIndex: "); DEX_println(currentIndex);
-    DEX_print("currenMenu NAME: ");DEX_println(currentMenu ? currentMenu->getName() : "NULL");
-    
+    printDebug();
     showCurrentMenu();
 }
 
 void MenuManager::previousItem() {
-    currentIndex = (currentIndex - 1 + currentMenu->getSubMenuCount()) % currentMenu->getSubMenuCount();
-    if (menuStackPointer == 0){ // in mainMenu
-      currentMainMenuObject = currentIndex; //go back to the mainMenu that last was selected
-    }
+    currentIndex = (currentIndex - 1 + currentMenu->getSubMenuCount()) % currentMenu->getSubMenuCount(); // add -1 to index
+    currentMenuObject[menuStackPointer] = currentIndex; // save the new index
     
-    DEX_print("currentMainMenuObject: "); DEX_println(currentMainMenuObject);
-    DEX_print("submenucount: "); DEX_println(currentMenu->getSubMenuCount());
-    DEX_print("menuStackPointer: "); DEX_println(menuStackPointer);
-    DEX_print("currentIndex: "); DEX_println(currentIndex);
-    DEX_print("currenMenu NAME: ");DEX_println(currentMenu ? currentMenu->getName() : "NULL");
-    
+    printDebug();
     showCurrentMenu();
+}
+
+void MenuManager::printDebug(){
+    DEX_printf("currentMenuObject[%u]: %u %s\n", menuStackPointer, currentMenuObject[menuStackPointer], menuStackPointer == 0 ? "-> MAIN" : "");
+    DEX_printf("submenucount: %u\n", currentMenu->getSubMenuCount());
+    DEX_printf("menuStackPointer: %u\n", menuStackPointer);
+    DEX_printf("currentIndex: %u\n", currentIndex);
+    DEX_printf("currenMenu NAME: %u\n", currentMenu ? currentMenu->getName() : "NULL");
 }
 
 void MenuManager::showCurrentMenu(bool dmxDot) {
