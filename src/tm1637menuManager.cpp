@@ -6,99 +6,92 @@ MenuManager::MenuManager(TM1637* display, MenuObject* rootMenu) {
     this->menuStackPointer = 0;
     this->currentIndex = 0;
 
+    // Initialize stored indexes to 0
+    for (int i = 0; i < 6; i++) {
+        currentMenuObject[i] = 0;
+        menuStack[i] = nullptr;
+    }
 }
 
-// Destructor for MenuManager
 MenuManager::~MenuManager() {
-    // Delete the dynamically allocated root menu and all its submenus
-    delete currentMenu;
+    // Only delete if MenuManager owns the menu objects
+    // If menus are created outside, do NOT delete them here
+    // delete currentMenu; // <- Removed to prevent deleting external/static objects
 }
 
 MenuObject* MenuManager::getCurrentMenu() {
-    // Check if the current menu has submenus and return the first one if available
     if (currentMenu && currentMenu->getSubMenuCount() > 0) {
-        return currentMenu->getSubMenu(currentIndex);  // Return the first submenu
+        MenuObject* sub = currentMenu->getSubMenu(currentIndex);
+        return sub ? sub : currentMenu; 
     }
-    return currentMenu;  // If no submenus, return the current menu itself
+    return currentMenu;
 }
 
 bool MenuManager::getCurrentMenuIsMain() {
-    bool isMain =  menuStackPointer == 0 ? true : false; //in mainmMenu
-    return isMain;
+    return (menuStackPointer == 0);
 }
 
 bool MenuManager::getTargetMenuIsMain(MenuObject* targetMenu) {
+    if (!targetMenu) return false;
 
-    // **Find the top-level menu**
     MenuObject* root = (menuStackPointer > 0) ? menuStack[0] : currentMenu;
+    if (!root) return false;
+
+    // Check all submenus at root
     for (int i = 0; i < root->getSubMenuCount(); i++) {
-        // **If target menu found**
-        if (root == targetMenu) {
-            D_println("Already in a main menu, you can ONLY jump to subMenu's , ABORTING JUMP!");
+        if (root->getSubMenu(i) == targetMenu) {
+            D_println("Target is a main menu item.");
             return true;
-        } else{
-            return false;
         }
     }
-    // If loop finishes without finding the target menu, return false
     return false;
 }
 
 bool MenuManager::getCurrentMenuIsSub() {
-    bool isSub = menuStackPointer > 0 ? true : false; // in sub menu
-    return isSub;
+    return (menuStackPointer > 0);
 }
 
 bool MenuManager::getCurrentMenuIsSubSub() {
-    bool isSubSub = menuStackPointer > 1 ? true : false; // in sub sub menu
-    return isSubSub;
+    return (menuStackPointer > 1);
 }
 
 void MenuManager::jumpToMenu(MenuObject* targetMenu) {
     if (!targetMenu) return;
 
-     // Check if the current menu is a main menu
-    if (getTargetMenuIsMain(targetMenu)) {
-        return;  // Abort the jump if we're in a main menu
+    if (getTargetMenuIsMain(targetMenu)) return;
+
+    D_println("Jumping to menu...");
+
+    int newStackPointer = 0;
+    int mainMenuIndex = 0;
+
+    MenuObject* rootMenu = (menuStackPointer > 0) ? menuStack[0] : currentMenu;
+    if (!rootMenu) return;
+
+    if (!findMenuPath(rootMenu, targetMenu, 0, newStackPointer, mainMenuIndex)) {
+        D_println("Target menu not found in tree!");
+        return;
     }
 
-      D_println("Jumping to menu...");
+    if (newStackPointer >= MAX_SUBMENUS) {
+        D_println("ERROR: Stack overflow detected, ABORTING!");
+        return;
+    }
 
-      int newStackPointer = 0;
-      int mainMenuIndex = 0;
+    menuStackPointer = newStackPointer - 1;
+    currentMenu = targetMenu;
+    currentIndex = mainMenuIndex;
 
-      // **Find the top-level menu**
-      MenuObject* rootMenu = (menuStackPointer > 0) ? menuStack[0] : currentMenu;
+    D_println("Jump successful!");
+    D_printf("  New Stack Pointer: %d\n", menuStackPointer);
+    D_printf("  Main Menu Index: %d\n", mainMenuIndex);
+    D_printf("  Current Menu: %s\n", currentMenu ? currentMenu->getName().c_str() : "NULL");
 
-      // **Find the path to the target menu**
-      if (!findMenuPath(rootMenu, targetMenu, 0, newStackPointer, mainMenuIndex)) {
-          D_println("Target menu not found in tree!");
-          return;
-      }
-
-      // **Ensure stack pointer is within bounds**
-      if (newStackPointer >= MAX_SUBMENUS) {
-          D_println("ERROR: Stack overflow detected, ABORTING!");
-          return;
-      }
-
-      // **Update menu navigation variables**
-      menuStackPointer = newStackPointer - 1;
-      currentMenu = targetMenu;  // This should update correctly
-      currentIndex = mainMenuIndex;  // Ensure correct submenu index
-      
-
-      D_println("Jump successful!");
-      D_printf("  New Stack Pointer: %u\n", menuStackPointer);
-      D_printf("  Main Menu Index: %u\n", mainMenuIndex);
-      D_printf("  Current Menu: %u\n", currentMenu ? currentMenu->getName() : "NULL");
-
-      showCurrentMenu();
+    showCurrentMenu();
 }
 
-int MenuManager::getCurrentIndex(){
+int MenuManager::getCurrentIndex() {
     return currentMenuObject[menuStackPointer];
-    //return currentIndex;
 }
 
 bool MenuManager::findMenuPath(MenuObject* root, MenuObject* target, int depth, int &newStackPointer, int &mainMenuIndex) {
@@ -106,120 +99,125 @@ bool MenuManager::findMenuPath(MenuObject* root, MenuObject* target, int depth, 
 
     for (int i = 0; i < root->getSubMenuCount(); i++) {
         MenuObject* subMenu = root->getSubMenu(i);
-        DEX_printf("Checking submenu: %u\n", subMenu->getName());
+        if (!subMenu) continue;
 
-        // **If target menu found, update stack**
+        DEX_printf("Checking submenu: %s\n", subMenu->getName().c_str());
+
         if (subMenu == target) {
             D_println("Target menu found!");
             newStackPointer = depth + 1;
             mainMenuIndex = i;
-            DEX_printf("mainMenuIndex: %u\n", mainMenuIndex);
-            menuStack[depth] = root;  // Store parent in stack
+            menuStack[depth] = root;
 
-            // **STOP SEARCH if target is a main menu**
             if (depth == 0) {
                 D_println("Target is a MAIN MENU. Stopping search.");
-                newStackPointer = 0; // is still a mainMenu
-                return true;
+                newStackPointer = 0;
             }
-
             return true;
-        } else{
-          currentMenuObject[0] = i;
+        } else {
+            currentMenuObject[0] = i;
         }
 
-        // **Recursively search deeper**
         if (findMenuPath(subMenu, target, depth + 1, newStackPointer, mainMenuIndex)) {
-            menuStack[depth] = root;  // Store parent in stack
+            menuStack[depth] = root;
             return true;
         }
     }
     return false;
 }
 
-
-
 void MenuManager::enterMenu() {
-    
-    if (currentMenu->getSubMenuCount() > 0) { // has submenu's
-      menuStack[menuStackPointer++] = currentMenu; // add one sub layer
-      
-      currentMenu = currentMenu->getSubMenu(currentIndex); // set current menu
-      currentIndex = currentMenuObject[menuStackPointer]; // get the previous stored index
+    if (!currentMenu) return;
 
-      // check it again | overflow protection
-      if(currentMenu->getSubMenuCount() == 0){ // prevent extra menuStackPointer that not exists
-        currentMenu = menuStack[--menuStackPointer]; // noting there -> go back
-        currentIndex = currentMenuObject[menuStackPointer]; // get the previous stored index
-      }
-      
+    if (currentMenu->getSubMenuCount() > 0) {
+        menuStack[menuStackPointer++] = currentMenu;
+        MenuObject* next = currentMenu->getSubMenu(currentIndex);
+
+        if (next) {
+            currentMenu = next;
+        }
+
+        currentIndex = currentMenuObject[menuStackPointer];
+
+        if (!currentMenu || currentMenu->getSubMenuCount() == 0) {
+            currentMenu = menuStack[--menuStackPointer];
+            currentIndex = currentMenuObject[menuStackPointer];
+        }
     }
-    
+
     printDebug();
-    showCurrentMenu();    
+    showCurrentMenu();
 }
 
 void MenuManager::exitMenu() {
-    currentMenuObject[menuStackPointer] = currentIndex; //save index before leaving
+    currentMenuObject[menuStackPointer] = currentIndex;
 
-    if (menuStackPointer > 0) { // still in a subMenu
-      currentMenu = menuStack[--menuStackPointer];
-      currentIndex = currentMenuObject[menuStackPointer]; // get the recently use menuNR
-      
-    }else if (currentIndex > 0 ){ // still in the last stored mainmenu
-      currentIndex = 0; // reset currentIndex to 0 -> go to the first mainMenu
-      currentMenuObject[menuStackPointer] = currentIndex;
-    }//else { // go te the default menu 
-    
-    
+    if (menuStackPointer > 0) {
+        currentMenu = menuStack[--menuStackPointer];
+        currentIndex = currentMenuObject[menuStackPointer];
+    } else if (currentIndex > 0) {
+        currentIndex = 0;
+        currentMenuObject[menuStackPointer] = currentIndex;
+    }
+
     printDebug();
     showCurrentMenu();
 }
 
 void MenuManager::nextItem() {
-    currentIndex = (currentIndex + 1) % currentMenu->getSubMenuCount(); // add +1 to index
-    currentMenuObject[menuStackPointer] = currentIndex; // save the new index
-    
+    if (!currentMenu) return;
+    int count = currentMenu->getSubMenuCount();
+    if (count == 0) return;
+
+    currentIndex = (currentIndex + 1) % count;
+    currentMenuObject[menuStackPointer] = currentIndex;
+
     printDebug();
     showCurrentMenu();
 }
 
 void MenuManager::previousItem() {
-    currentIndex = (currentIndex - 1 + currentMenu->getSubMenuCount()) % currentMenu->getSubMenuCount(); // add -1 to index
-    currentMenuObject[menuStackPointer] = currentIndex; // save the new index
-    
+    if (!currentMenu) return;
+    int count = currentMenu->getSubMenuCount();
+    if (count == 0) return;
+
+    currentIndex = (currentIndex - 1 + count) % count;
+    currentMenuObject[menuStackPointer] = currentIndex;
+
     printDebug();
     showCurrentMenu();
 }
 
-void MenuManager::printDebug(){
-    DEX_printf("currentMenuObject[%u]: %u %s\n", menuStackPointer, currentMenuObject[menuStackPointer], menuStackPointer == 0 ? "-> MAIN" : "");
-    DEX_printf("submenucount: %u\n", currentMenu->getSubMenuCount());
-    DEX_printf("menuStackPointer: %u\n", menuStackPointer);
-    DEX_printf("currentIndex: %u\n", currentIndex);
-    DEX_printf("currenMenu NAME: %u\n", currentMenu ? currentMenu->getName() : "NULL");
+void MenuManager::printDebug() {
+    DEX_printf("currentMenuObject[%d]: %d %s\n", menuStackPointer, currentMenuObject[menuStackPointer], menuStackPointer == 0 ? "-> MAIN" : "");
+    DEX_printf("submenucount: %d\n", currentMenu ? currentMenu->getSubMenuCount() : -1);
+    DEX_printf("menuStackPointer: %d\n", menuStackPointer);
+    DEX_printf("currentIndex: %d\n", currentIndex);
+    DEX_printf("currenMenu NAME: %s\n", currentMenu ? currentMenu->getName().c_str() : "NULL");
 }
 
 void MenuManager::showCurrentMenu(bool dmxDot) {
-  // Check if currentMenu has submenus
-  if (currentMenu->getSubMenuCount() > 0) {
-      // Show the submenu name if there are submenus
-      showText(currentMenu->getSubMenu(currentIndex)->getName().c_str(), 
-              currentMenu->getSubMenu(currentIndex)->getDot() + dmxDot);
-  } else {
-      // If there are no submenus, show the main menu name
-      showText(currentMenu->getName().c_str(), currentMenu->getDot() + dmxDot);
-  }
+    if (!currentMenu) return;
+
+    if (currentMenu->getSubMenuCount() > 0) {
+        MenuObject* sub = currentMenu->getSubMenu(currentIndex);
+        if (!sub) return;
+        showText(sub->getName().c_str(), sub->getDot() + dmxDot);
+    } else {
+        showText(currentMenu->getName().c_str(), currentMenu->getDot() + dmxDot);
+    }
 }
 
-void MenuManager::darkScreen(bool dmxDot){
+void MenuManager::darkScreen(bool dmxDot) {
     showText("    ", dmxDot);
 }
 
-void MenuManager::showCurrentScriptMenu(bool dmxDot){
-    showText(currentMenu->getName().c_str(), currentMenu->getDot()+dmxDot);
+void MenuManager::showCurrentScriptMenu(bool dmxDot) {
+    if (!currentMenu) return;
+    showText(currentMenu->getName().c_str(), currentMenu->getDot() + dmxDot);
 }
 
 void MenuManager::showText(const char* text, int dot) {
-    display->setDisplayToString(text, dot);  // Gebruik de juiste methode om tekst te tonen op het 7-segment display
+    if (!display) return;
+    display->setDisplayToString(text, dot);
 }

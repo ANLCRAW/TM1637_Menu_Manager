@@ -36,13 +36,13 @@
 
 class MenuManager {
 private:
-    TM1637* display;
-    MenuObject* currentMenu;
-    MenuObject* menuStack[MAX_SUBMENUS];
+    TM1637* display; // Pointer to the TM1637 display object
+    MenuObject* currentMenu; // Pointer to the current menu object
+    MenuObject* menuStack[MAX_SUBMENUS]; // Stack to hold menu objects for navigation
     bool findMenuPath(MenuObject* root, MenuObject* target, int depth, int &newStackPointer, int &mainMenuIndex);
-    int menuStackPointer;
-    int currentIndex;
-    int currentMenuObject[6];
+    int menuStackPointer; // Pointer to the current position in the menu stack
+    int currentIndex; // Index of the current submenu in the current menu
+    int currentMenuObject[MAX_SUBMENUS]; // Store current index for each menu level
     void printDebug();
 
 public:

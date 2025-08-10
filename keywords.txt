@@ -1,60 +1,43 @@
 #######################################
-# Syntax Coloring Map For MenuManager
+# Syntax Coloring Map For TM1637 Menu Manager
 #######################################
 
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
-
-MenuManager     KEYWORD1
-MenuObject      KEYWORD1
-TM1637          KEYWORD1
+MenuManager	KEYWORD1
+MenuObject	KEYWORD1
+TM1637	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
-
-getCurrentMenu  KEYWORD2
-enterMenu       KEYWORD2
-exitMenu        KEYWORD2
-nextItem        KEYWORD2
-previousItem    KEYWORD2
-showCurrentMenu KEYWORD2
-showText        KEYWORD2
-
-
-#######################################
-# Syntax Coloring Map For MenuObject
-#######################################
-
-#######################################
-# Datatypes (KEYWORD1)
-#######################################
-
-MenuObject      KEYWORD1
+getCurrentMenu	KEYWORD2
+enterMenu	KEYWORD2
+exitMenu	KEYWORD2
+nextItem	KEYWORD2
+previousItem	KEYWORD2
+showCurrentMenu	KEYWORD2
+showText	KEYWORD2
+getCurrentMenuIsMain	KEYWORD2
+getTargetMenuIsMain	KEYWORD2
+getCurrentMenuIsSub	KEYWORD2
+getCurrentMenuIsSubSub	KEYWORD2
+getCurrentIndex	KEYWORD2
+jumpToMenu	KEYWORD2
+darkScreen	KEYWORD2
+showCurrentScriptMenu	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
-
-MAX_SUBMENUS    LITERAL1
-
-#######################################
-# Methods and Functions (KEYWORD2)
-#######################################
-
-addSubMenu      KEYWORD2
-getName         KEYWORD2
-getDot          KEYWORD2
-getSubMenu      KEYWORD2
-getSubMenuCount KEYWORD2
+MAX_SUBMENUS	LITERAL1
 
 #######################################
-# Variables (KEYWORD2)
+# MenuObject Methods (KEYWORD2)
 #######################################
-
-name            KEYWORD2
-dot             KEYWORD2
-subMenus        KEYWORD2
-subMenuCount    KEYWORD2
-
+addSubMenu	KEYWORD2
+getName	KEYWORD2
+getDot	KEYWORD2
+getSubMenu	KEYWORD2
+getSubMenuCount	KEYWORD2
